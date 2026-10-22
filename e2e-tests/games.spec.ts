@@ -24,6 +24,26 @@ test.describe('Game Listing and Navigation', () => {
     });
   });
 
+  test('should filter games by category and publisher', async ({ page }) => {
+    await page.goto('/');
+
+    const visibleCards = page.locator('[data-testid="game-card"]:not([hidden])');
+    const totalCards = await visibleCards.count();
+    expect(totalCards).toBeGreaterThan(0);
+
+    await page.getByTestId('category-filter').selectOption({ label: 'Strategy' });
+    await expect(visibleCards).toHaveCount(4);
+    await expect(page.getByTestId('games-filter-status')).toHaveText('Showing 4 games');
+
+    await page.getByTestId('publisher-filter').selectOption({ label: 'CodeForge Studios' });
+    await expect(visibleCards).toHaveCount(1);
+    await expect(visibleCards.first()).toHaveAttribute('data-game-category', 'Strategy');
+    await expect(visibleCards.first()).toHaveAttribute('data-game-publisher', 'CodeForge Studios');
+
+    await page.getByTestId('clear-filters').click();
+    await expect(visibleCards).toHaveCount(totalCards);
+  });
+
   test('should display each game rating out of five on cards', async ({ page }) => {
     await test.step('Navigate to homepage', async () => {
       await page.goto('/');
